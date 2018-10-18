@@ -62,7 +62,7 @@ UserSchema.methods.generateAuthToken = function() {
             _id: user._id.toHexString(),
             role: user.role,
             iat: moment().unix(),
-            exp: moment().add(3, 'minutes').unix(),
+            exp: moment().add(60, 'minutes').unix(),
             access
         },
         process.env.JWT_SECRET).toString();
@@ -86,24 +86,6 @@ UserSchema.methods.removeToken = function(token) {
     });
 };
 
-UserSchema.statics.checkExpiredToken = function(token) {
-    var user = this;
-    var decoded;
-
-    try {
-        decoded = jwt.decode(token, process.env.JWT_SECRET);
-
-    } catch (error) {
-        return Promise.reject();
-    }
-
-    return user.findOne({
-        '_id': decoded._id,
-        'tokens.token': token,
-        'tokens.access': 'auth'
-    })
-};
-
 UserSchema.statics.findByToken = function(token) {
     var user = this;
     var decoded;
@@ -111,7 +93,9 @@ UserSchema.statics.findByToken = function(token) {
     try {
         decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-        return Promise.reject();
+        return Promise.reject().then(function() {
+            throw new Error();
+        });
     }
 
     return user.findOne({
@@ -126,7 +110,9 @@ UserSchema.statics.findByCredentials = function(email, password) {
 
     return user.findOne({ email }).then((userFind) => {
         if (!userFind) {
-            return Promise.reject();
+            return Promise.reject().then(function() {
+                throw new Error();
+            });
         }
 
         return new Promise((resolve, reject) => {
@@ -134,7 +120,9 @@ UserSchema.statics.findByCredentials = function(email, password) {
                 if (result) {
                     resolve(userFind);
                 } else {
-                    reject();
+                    reject().then(function() {
+                        throw new Error();
+                    });
                 }
             });
         });

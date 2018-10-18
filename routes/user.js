@@ -10,7 +10,8 @@ api.get('/tests', UserController.tests);
 api.post('/register', UserController.saveUser);
 api.post('/login', UserController.loginUser);
 api.delete('/logout', authenticate, UserController.logoutUser);
-api.get('/me', authenticate, UserController.getUser);
+api.get('/me', authenticate, UserController.getMe);
+api.get('/user/:id', authenticate, UserController.getUser);
 
 
 module.exports = api;

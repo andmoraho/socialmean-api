@@ -4,14 +4,10 @@ var { User } = require('../models/user');
 
 var authenticate = async(req, res, next) => {
     var token = req.header('x-auth');
-    var decoded = User.checkExpiredToken(token, process.env.JWT_SECRET);
+    var decoded = User.findByToken(token, process.env.JWT_SECRET);
 
     try {
         var user = await User.findByToken(token);
-
-        if (!user) {
-            throw new Error('');
-        }
 
         if (decoded.exp < moment().unix()) {
             throw new Error('');
@@ -22,7 +18,9 @@ var authenticate = async(req, res, next) => {
         next();
 
     } catch (error) {
-        res.status(401).send();
+        res.status(401).send({
+            message: 'Invalid token.'
+        });
     }
 };
 
