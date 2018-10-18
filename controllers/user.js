@@ -21,8 +21,7 @@ var saveUser = async(req, res) => {
         const user = new User(body);
 
         await user.save();
-        const token = await user.generateAuthToken();
-        res.header('x-auth', token).status(200).send(user);
+        res.status(200).send(user);
     } catch (error) {
 
         res.status(400).send({

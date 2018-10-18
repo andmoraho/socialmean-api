@@ -24,24 +24,6 @@ var authenticate = async(req, res, next) => {
     } catch (error) {
         res.status(401).send();
     }
-
-
-
-    // var user = User.findByToken(token).then((user) => {
-    //     if (!user) {
-    //         return Promise.reject();
-    //     }
-
-    //     if (decoded.exp < moment().unix()) {
-    //         return Promise.reject();
-    //     }
-
-    //     req.user = user;
-    //     req.token = token;
-    //     next();
-    // }).catch((error) => {
-    //     res.status(401).send();
-    // });
 };
 
 module.exports = { authenticate };
