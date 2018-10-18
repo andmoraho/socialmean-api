@@ -12,6 +12,6 @@ api.post('/login', UserController.loginUser);
 api.delete('/logout', authenticate, UserController.logoutUser);
 api.get('/me', authenticate, UserController.getMe);
 api.get('/user/:id', authenticate, UserController.getUser);
-
+api.get('/users/:page?', authenticate, UserController.getUsers);
 
 module.exports = api;

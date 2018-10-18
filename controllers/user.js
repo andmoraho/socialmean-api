@@ -76,6 +76,33 @@ var getUser = async(req, res) => {
     }
 };
 
+// GET /users/page? (authenticated)
+
+var getUsers = async(req, res) => {
+    const userId = req.user._id;
+    var page = req.params.page || 1
+    var itemsPerPage = 1;
+
+    try {
+
+        var totalUsers = await User.find({}).exec();
+
+        var usersFiltered = await User.find({})
+            .skip((itemsPerPage * page) - itemsPerPage)
+            .limit(itemsPerPage);
+
+        res.status(200).send({
+            usersFiltered,
+            total: totalUsers.length,
+            pages: Math.ceil(totalUsers.length / itemsPerPage),
+            currentPage: page
+        });
+
+    } catch (error) {
+        res.status(404).send({ error });
+    }
+};
+
 module.exports = {
     home,
     tests,
@@ -83,5 +110,6 @@ module.exports = {
     loginUser,
     logoutUser,
     getMe,
-    getUser
+    getUser,
+    getUsers
 };
