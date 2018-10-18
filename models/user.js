@@ -86,13 +86,30 @@ UserSchema.methods.removeToken = function(token) {
     });
 };
 
+UserSchema.statics.checkExpiredToken = function(token) {
+    var user = this;
+    var decoded;
+
+    try {
+        decoded = jwt.decode(token, process.env.JWT_SECRET);
+
+    } catch (error) {
+        return Promise.reject();
+    }
+
+    return user.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
+};
+
 UserSchema.statics.findByToken = function(token) {
     var user = this;
     var decoded;
 
     try {
         decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded);
     } catch (error) {
         return Promise.reject();
     }
