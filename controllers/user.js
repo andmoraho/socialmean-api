@@ -103,6 +103,32 @@ var getUsers = async(req, res) => {
     }
 };
 
+// PUT /user/:id (authenticated)
+
+var updateUser = async(req, res) => {
+    const id = req.params.id;
+    const body = _.pick(req.body, ['name', 'surname', 'nick', 'email', 'password', 'role', 'image']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(400).send({
+            message: 'User Id not valid.'
+        });
+    }
+
+    try {
+        const userUpdated = await User.findOneAndUpdate({
+            _id: id
+        }, { $set: body }, { new: true });
+
+        res.status(200).send({ userUpdated });
+    } catch (error) {
+        res.status(404).send({
+            message: 'Unable to update user.'
+        });
+    }
+
+};
+
 module.exports = {
     home,
     tests,
@@ -111,5 +137,6 @@ module.exports = {
     logoutUser,
     getMe,
     getUser,
-    getUsers
+    getUsers,
+    updateUser
 };

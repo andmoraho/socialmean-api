@@ -13,5 +13,6 @@ api.delete('/logout', authenticate, UserController.logoutUser);
 api.get('/me', authenticate, UserController.getMe);
 api.get('/user/:id', authenticate, UserController.getUser);
 api.get('/users/:page?', authenticate, UserController.getUsers);
+api.put('/user/:id', authenticate, UserController.updateUser);
 
 module.exports = api;

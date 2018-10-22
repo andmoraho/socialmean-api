@@ -91,7 +91,7 @@ UserSchema.statics.findByToken = function(token) {
     var decoded;
 
     try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { maxAge: '60m' });
     } catch (error) {
         return Promise.reject().then(function() {
             throw new Error();
@@ -100,9 +100,10 @@ UserSchema.statics.findByToken = function(token) {
 
     return user.findOne({
         '_id': decoded._id,
+        'exp': decoded.exp,
         'tokens.token': token,
         'tokens.access': 'auth'
-    })
+    });
 };
 
 UserSchema.statics.findByCredentials = function(email, password) {
