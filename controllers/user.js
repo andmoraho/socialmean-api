@@ -1,4 +1,7 @@
 const _ = require('lodash');
+const validator = require('validator');
+const fs = require('fs');
+const path = require('path');
 
 var { ObjectID } = require('mongodb');
 var { User } = require('../models/user');
@@ -129,6 +132,76 @@ var updateUser = async(req, res) => {
 
 };
 
+// POST /user/image/:id (authenticated)
+var uploadImage = async(req, res) => {
+    const id = req.params.id;
+    const allowed_extensions = {
+        png: 'png',
+        jpg: 'jpg',
+        jpeg: 'jpeg',
+        gif: 'gif'
+    };
+
+    if (req.files) {
+
+        const file_path = req.files.image.path;
+        const file_params = file_path.split('\\');
+        const file_name = file_params[2];
+        const file_name_split = file_name.split('\.');
+        const file_extension = file_name_split[1];
+
+        if (!ObjectID.isValid(id) || id != req.user._id) {
+            return removeFileUploaded(res, file_path, 'User Id not valid.');
+        }
+
+        if (validator.isIn(file_extension, allowed_extensions)) {
+
+            try {
+                const prevUser = await User.findById(id);
+                const prevImagePath = `./uploads/users/${prevUser.image}`;
+
+                const userUpdated = await User.findOneAndUpdate({
+                    _id: id
+                }, { $set: { image: file_name } }, { new: true });
+
+                fs.exists(prevImagePath, (exists) => {
+                    if (exists) {
+                        fs.unlink(prevImagePath, (error) => {
+                            if (error) {
+                                // Do nothing
+                            };
+                        });
+                    }
+
+                });
+
+                res.status(200).send({ userUpdated });
+            } catch (error) {
+                res.status(404).send({
+                    message: 'Unable to update user image.'
+                });
+            }
+
+        } else {
+            return removeFileUploaded(res, file_path.toString(), 'Image extension not valid.');
+        }
+
+    } else {
+        return res.status(400).send({
+            message: 'Image is required.'
+        });
+    }
+
+};
+
+var removeFileUploaded = (res, file_path, message) => {
+    fs.unlink(file_path, (error) => {
+        return res.status(400).send({
+            message
+        });
+    });
+};
+
 module.exports = {
     home,
     tests,
@@ -138,5 +211,6 @@ module.exports = {
     getMe,
     getUser,
     getUsers,
-    updateUser
+    updateUser,
+    uploadImage
 };

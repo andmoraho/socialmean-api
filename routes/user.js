@@ -1,7 +1,8 @@
 const express = require('express');
 const UserController = require('../controllers/user');
 
-var { authenticate } = require('../middleware/authenticate');
+const { authenticate } = require('../middleware/authenticate');
+const { md_upload } = require('../middleware/uploadImage');
 
 var api = express.Router();
 
@@ -14,5 +15,6 @@ api.get('/me', authenticate, UserController.getMe);
 api.get('/user/:id', authenticate, UserController.getUser);
 api.get('/users/:page?', authenticate, UserController.getUsers);
 api.put('/user/:id', authenticate, UserController.updateUser);
+api.post('/user/image/:id', [authenticate, md_upload], UserController.uploadImage);
 
 module.exports = api;
