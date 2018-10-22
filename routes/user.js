@@ -16,5 +16,6 @@ api.get('/user/:id', authenticate, UserController.getUser);
 api.get('/users/:page?', authenticate, UserController.getUsers);
 api.put('/user/:id', authenticate, UserController.updateUser);
 api.post('/user/image/:id', [authenticate, md_upload], UserController.uploadImage);
+api.get('/user/image/:imageFile', UserController.getImageUser);
 
 module.exports = api;

@@ -202,6 +202,22 @@ var removeFileUploaded = (res, file_path, message) => {
     });
 };
 
+var getImageUser = (req, res) => {
+    const imageUser = req.params.imageFile;
+    const imagePath = `./uploads/users/${imageUser}`;
+
+    fs.exists(imagePath, (exists) => {
+        if (exists) {
+            res.sendFile(path.resolve(imagePath));
+        } else {
+            return res.status(404).send({
+                message: 'Unable to find image.'
+            });
+        }
+    });
+
+};
+
 module.exports = {
     home,
     tests,
@@ -212,5 +228,6 @@ module.exports = {
     getUser,
     getUsers,
     updateUser,
-    uploadImage
+    uploadImage,
+    getImageUser
 };
