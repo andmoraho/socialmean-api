@@ -98,12 +98,19 @@ UserSchema.statics.findByToken = function(token) {
         });
     }
 
-    return user.findOne({
-        '_id': decoded._id,
-        'exp': decoded.exp,
-        'tokens.token': token,
-        'tokens.access': 'auth'
+    user.findOne({
+        '_id': decoded._id
+    }, (error, result) => {
+        if (error) {
+            return Promise.reject().then(function() {
+                throw new Error(error);
+            });
+        }
+
+        return result;
     });
+
+
 };
 
 UserSchema.statics.findByCredentials = function(email, password) {

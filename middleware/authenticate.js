@@ -1,23 +1,32 @@
 const moment = require('moment');
+const jwt = require('jsonwebtoken');
 
-var { User } = require('../models/user');
+const { User } = require('../models/user');
 
-var authenticate = async(req, res, next) => {
+var authenticate = (req, res, next) => {
     var token = req.header('x-auth');
 
     try {
-
-        var user = await User.findByToken(token);
-
-        req.user = user;
-        req.token = token;
-        next();
-
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { maxAge: '60m' });
     } catch (error) {
         res.status(401).send({
-            message: 'Token not valid. Unauthorized.'
+            message: 'User not found.'
         });
     }
+
+    User.findOne({
+        '_id': decoded._id
+    }, (error, result) => {
+        if (error) {
+            res.status(401).send({
+                message: 'Token not valid. Unauthorized.'
+            });
+        }
+
+        req.user = result;
+        req.token = token;
+        next();
+    });
 };
 
 module.exports = { authenticate };
