@@ -32,7 +32,7 @@ var saveFollow = async(req, res) => {
     }
 
 };
-
+// DELETE /follow (authenticated)
 var deleteFollow = async(req, res) => {
     try {
         const body = _.pick(req.body, ['_followed']);
