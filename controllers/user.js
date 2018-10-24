@@ -6,19 +6,6 @@ const path = require('path');
 var { ObjectID } = require('mongodb');
 var { User } = require('../models/user');
 
-var home = (req, res) => {
-    res.status(200).send({
-        message: 'Welcome to home'
-    });
-};
-
-
-var tests = (req, res) => {
-    res.status(200).send({
-        message: 'This is a test'
-    });
-};
-
 // POST /register
 var saveUser = async(req, res) => {
     try {
@@ -219,8 +206,6 @@ var getImageUser = (req, res) => {
 };
 
 module.exports = {
-    home,
-    tests,
     saveUser,
     loginUser,
     logoutUser,

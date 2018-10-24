@@ -6,8 +6,6 @@ const { md_upload } = require('../middleware/uploadImage');
 
 var api = express.Router();
 
-api.get('/home', UserController.home);
-api.get('/tests', UserController.tests);
 api.post('/register', UserController.saveUser);
 api.post('/login', UserController.loginUser);
 api.delete('/logout', authenticate, UserController.logoutUser);
