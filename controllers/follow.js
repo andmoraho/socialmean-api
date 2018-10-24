@@ -33,6 +33,35 @@ var saveFollow = async(req, res) => {
 
 };
 
+var deleteFollow = async(req, res) => {
+    try {
+        const body = _.pick(req.body, ['_followed']);
+        const _user = req.user._id;
+        const _followed = body._followed;
+
+        if (!ObjectID.isValid(_user) && !ObjectID.isValid(_followed)) {
+            return res.status(400).send({
+                message: 'Id not valid.'
+            });
+        }
+
+        await Follow.find({ _user, _followed }).deleteOne();
+
+        res.status(200).send({
+            message: 'Follow deleted.'
+        });
+
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+
+
+
+};
+
 module.exports = {
-    saveFollow
-}
+    saveFollow,
+    deleteFollow
+};

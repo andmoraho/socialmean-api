@@ -7,5 +7,6 @@ const { md_upload } = require('../middleware/uploadImage');
 var api = express.Router();
 
 api.post('/follow', authenticate, FollowController.saveFollow);
+api.delete('/follow', authenticate, FollowController.deleteFollow);
 
 module.exports = api;
