@@ -68,8 +68,8 @@ var deleteFollow = async(req, res) => {
     }
 };
 
-// GET /followed/:page?
-var getFollowedUser = async(req, res) => {
+// GET /following/:page?
+var getFollowingUser = async(req, res) => {
     const userId = req.user._id;
     var page = req.params.page || 1;
     var itemsPerPage = 5;
@@ -79,7 +79,7 @@ var getFollowedUser = async(req, res) => {
             throw new Error('Id not valid.');
         }
 
-        var totalFollowed = await Follow.find({
+        var totalFollowing = await Follow.find({
             _user: userId
         });
 
@@ -89,6 +89,42 @@ var getFollowedUser = async(req, res) => {
             .populate({
                 path: '_followed'
             })
+            .skip((itemsPerPage * page) - itemsPerPage)
+            .limit(itemsPerPage);
+
+        res.status(200).send({
+            followsFiltered,
+            total: totalFollowing.length,
+            pages: Math.ceil(totalFollowing.length / itemsPerPage),
+            currentPage: page
+        });
+
+    } catch (error) {
+        res.status(404).send({
+            error
+        });
+    }
+};
+
+// GET /followed/:page?
+var getFollowedUser = async(req, res) => {
+    const userId = req.user._id;
+    var page = req.params.page || 1;
+    var itemsPerPage = 1;
+    try {
+
+        if (!ObjectID.isValid(userId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var totalFollowed = await Follow.find({
+            _followed: userId
+        });
+
+        var followsFiltered = await Follow.find({
+                _followed: userId
+            })
+            .populate('_user _followed')
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
 
@@ -109,5 +145,6 @@ var getFollowedUser = async(req, res) => {
 module.exports = {
     saveFollow,
     deleteFollow,
+    getFollowingUser,
     getFollowedUser
 };
