@@ -74,7 +74,6 @@ var getUsers = async(req, res) => {
     var itemsPerPage = 5;
 
     try {
-
         var totalUsers = await User.find({}).exec();
 
         var usersFiltered = await User.find({})

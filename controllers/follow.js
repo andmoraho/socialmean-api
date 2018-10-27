@@ -8,11 +8,11 @@ var { Follow } = require('../models/follow');
 
 // POST /follow (authenticated)
 var saveFollow = async(req, res) => {
-    try {
-        const body = _.pick(req.body, ['_followed']);
-        const _user = req.user._id;
-        const _followed = body._followed;
+    const body = _.pick(req.body, ['_followed']);
+    const _user = req.user._id;
+    const _followed = body._followed;
 
+    try {
         var isFollowed = await Follow.find({ _user, _followed });
 
         if (!ObjectID.isValid(_user) && !ObjectID.isValid(_followed)) {
@@ -46,11 +46,11 @@ var saveFollow = async(req, res) => {
 
 // DELETE /follow (authenticated)
 var deleteFollow = async(req, res) => {
-    try {
-        const body = _.pick(req.body, ['_followed']);
-        const _user = req.user._id;
-        const _followed = body._followed;
+    const body = _.pick(req.body, ['_followed']);
+    const _user = req.user._id;
+    const _followed = body._followed;
 
+    try {
         if (!ObjectID.isValid(_user) && !ObjectID.isValid(_followed)) {
             throw new Error('Id not valid.');
         }
@@ -68,11 +68,12 @@ var deleteFollow = async(req, res) => {
     }
 };
 
-// GET /following/:page?
+// GET /following/:page? (authenticated)
 var getFollowingUser = async(req, res) => {
     const userId = req.user._id;
     var page = req.params.page || 1;
     var itemsPerPage = 5;
+
     try {
 
         if (!ObjectID.isValid(userId)) {
@@ -106,11 +107,12 @@ var getFollowingUser = async(req, res) => {
     }
 };
 
-// GET /followed/:page?
+// GET /followed/:page? (authenticated)
 var getFollowedUser = async(req, res) => {
     const userId = req.user._id;
     var page = req.params.page || 1;
-    var itemsPerPage = 1;
+    var itemsPerPage = 5;
+
     try {
 
         if (!ObjectID.isValid(userId)) {
@@ -142,9 +144,38 @@ var getFollowedUser = async(req, res) => {
     }
 };
 
+// GET /follows/:followed? (authenticated)
+var getMyFollows = async(req, res) => {
+    const userId = req.user._id;
+    var followsFiltered;
+
+    try {
+        if (req.params.followed) {
+            followsFiltered = await Follow.find({
+                    _followed: userId
+                })
+                .populate('_user _followed');
+        } else {
+            followsFiltered = await Follow.find({
+                    _user: userId
+                })
+                .populate('_user _followed');
+        }
+
+        res.status(200).send({
+            followsFiltered
+        });
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     saveFollow,
     deleteFollow,
     getFollowingUser,
-    getFollowedUser
+    getFollowedUser,
+    getMyFollows
 };
