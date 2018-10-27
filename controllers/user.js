@@ -71,7 +71,7 @@ var getUser = async(req, res) => {
 var getUsers = async(req, res) => {
     const userId = req.user._id;
     var page = req.params.page || 1
-    var itemsPerPage = 1;
+    var itemsPerPage = 5;
 
     try {
 
@@ -100,9 +100,7 @@ var updateUser = async(req, res) => {
     const body = _.pick(req.body, ['name', 'surname', 'nick', 'email', 'image']);
 
     if (!ObjectID.isValid(id) || id != req.user._id) {
-        return res.status(400).send({
-            message: 'User Id not valid.'
-        });
+        throw new Error('Id not valid.');
     }
 
     try {
