@@ -5,6 +5,7 @@ const path = require('path');
 
 var { ObjectID } = require('mongodb');
 var { User } = require('../models/user');
+var { Follow } = require('../models/follow');
 
 // POST /register
 var saveUser = async(req, res) => {
@@ -13,6 +14,10 @@ var saveUser = async(req, res) => {
         const user = new User(body);
 
         await user.save();
+        user = user.toObject();
+        delete user.password;
+        delete user.tokens;
+
         res.status(200).send(user);
     } catch (error) {
 
@@ -26,8 +31,12 @@ var saveUser = async(req, res) => {
 var loginUser = async(req, res) => {
     try {
         const body = _.pick(req.body, ['email', 'password']);
-        const user = await User.findByCredentials(body.email, body.password);
+        var user = await User.findByCredentials(body.email, body.password);
         const token = await user.generateAuthToken();
+        user = user.toObject();
+        delete user.password;
+        delete user.tokens;
+
         res.header('x-auth', token).status(200).send(user);
     } catch (error) {
         res.status(404).send();
@@ -54,15 +63,26 @@ var getUser = async(req, res) => {
     const userId = req.params.id;
 
     if (!ObjectID.isValid(userId)) {
-        return res.status(400).send();
+        throw new Error('Id not valid.');
     }
 
     try {
-        const user = await User.findById(userId);
+        var user = await User.findById(userId);
+        const follow = await Follow.find({
+            _user: req.user._id,
+            _followed: userId
+        });
 
-        res.status(200).send({ user });
+        user = user.toObject();
+        delete user.password;
+        delete user.tokens;
+
+        res.status(200).send({
+            user,
+            follow
+        });
     } catch (error) {
-        res.status(404).send({ error });
+        res.status(404).send({ message: error.message });
     }
 };
 
@@ -80,6 +100,10 @@ var getUsers = async(req, res) => {
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
 
+        usersFiltered = usersFiltered.toObject();
+        delete usersFiltered.password;
+        delete usersFiltered.tokens;
+
         res.status(200).send({
             usersFiltered,
             total: totalUsers.length,
@@ -88,7 +112,7 @@ var getUsers = async(req, res) => {
         });
 
     } catch (error) {
-        res.status(404).send({ error });
+        res.status(404).send({ message: error.message });
     }
 };
 
@@ -103,9 +127,13 @@ var updateUser = async(req, res) => {
     }
 
     try {
-        const userUpdated = await User.findOneAndUpdate({
+        var userUpdated = await User.findOneAndUpdate({
             _id: id
         }, { $set: body }, { new: true });
+
+        userUpdated = userUpdated.toObject();
+        delete userUpdated.password;
+        delete userUpdated.tokens;
 
         res.status(200).send({ userUpdated });
     } catch (error) {
@@ -144,7 +172,7 @@ var uploadImage = async(req, res) => {
                 const prevUser = await User.findById(id);
                 const prevImagePath = `./uploads/users/${prevUser.image}`;
 
-                const userUpdated = await User.findOneAndUpdate({
+                var userUpdated = await User.findOneAndUpdate({
                     _id: id
                 }, { $set: { image: file_name } }, { new: true });
 
@@ -158,6 +186,10 @@ var uploadImage = async(req, res) => {
                     }
 
                 });
+
+                userUpdated = userUpdated.toObject();
+                delete userUpdated.password;
+                delete userUpdated.tokens;
 
                 res.status(200).send({ userUpdated });
             } catch (error) {
