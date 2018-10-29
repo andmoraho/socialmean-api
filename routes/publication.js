@@ -8,5 +8,7 @@ var api = express.Router();
 
 api.post('/publication', authenticate, PublicationController.savePublication);
 api.get('/publications/:page?', authenticate, PublicationController.getPublications);
+api.get('/publication/:id', authenticate, PublicationController.getPublication);
+api.delete('/publication/:id', authenticate, PublicationController.deletePublication);
 
 module.exports = api;

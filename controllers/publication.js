@@ -41,7 +41,7 @@ var savePublication = async(req, res) => {
 
 };
 
-//GET /publications (authenticated)
+//GET /publications/:page? (authenticated)
 var getPublications = async(req, res) => {
     try {
         var page = req.params.page || 1;
@@ -91,7 +91,56 @@ var getPublications = async(req, res) => {
     }
 };
 
+// GET /publication/:id (authenticated)
+var getPublication = async(req, res) => {
+    try {
+        const publicationId = req.params.id;
+
+        if (!ObjectID.isValid(publicationId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var publication = await Publication.findById(publicationId).select({ '__v': 0 });
+
+        res.status(200).send({ publication });
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
+// DELETE /publication/:id (authenticated)
+var deletePublication = async(req, res) => {
+    try {
+        const publicationId = req.params.id;
+        const user = req.user._id;
+
+        if (!ObjectID.isValid(publicationId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var publicationUser = await Publication.find({ _id: publicationId, _user: user });
+
+        if (publicationUser.length == 0) {
+            throw new Error('Unable to delete publication.');
+        }
+
+        await Publication.findOneAndDelete({ _id: publicationId, _user: user });
+
+        res.status(200).send({
+            message: 'Publication deleted.'
+        });
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     savePublication,
-    getPublications
+    getPublications,
+    getPublication,
+    deletePublication
 };
