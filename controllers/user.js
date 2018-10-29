@@ -123,6 +123,7 @@ var getUsers = async(req, res) => {
     }
 };
 
+// GET /user/counters/:id? (authenticated)
 var getCounters = async(req, res) => {
     try {
         const userId = req.params.id || req.user._id;
