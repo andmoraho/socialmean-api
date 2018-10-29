@@ -138,9 +138,107 @@ var deletePublication = async(req, res) => {
     }
 };
 
+// POST /publication/image/:id (authenticated)
+var uploadImage = async(req, res) => {
+    const publicationId = req.params.id;
+    const userId = req.user._id;
+    const allowed_extensions = {
+        png: 'png',
+        jpg: 'jpg',
+        jpeg: 'jpeg',
+        gif: 'gif'
+    };
+    try {
+
+        if (req.files) {
+
+            const file_path = req.files.image.path;
+            const file_params = file_path.split('\\');
+            const file_name = file_params[2];
+            const file_name_split = file_name.split('\.');
+            const file_extension = file_name_split[1];
+
+            if (!ObjectID.isValid(publicationId)) {
+                return removeFileUploaded(res, file_path, 'Id not valid.');
+            }
+
+            if (validator.isIn(file_extension, allowed_extensions)) {
+
+
+                const prevPublication = await Publication.find({
+                    _id: publicationId,
+                    _user: userId
+                });
+                const prevImagePath = `./uploads/publications/${prevPublication[0].file}`;
+
+                if (prevPublication.length == 0) {
+                    return removeFileUploaded(res, file_path, 'Unable to upload image.');
+                }
+
+                var publicationUpdated = await Publication.findOneAndUpdate({
+                        _id: publicationId,
+                        _user: userId
+                    }, { $set: { file: file_name } }, { new: true })
+                    .select({ '__v': 0 });
+
+                fs.exists(prevImagePath, (exists) => {
+                    if (exists) {
+                        fs.unlink(prevImagePath, (error) => {
+                            if (error) {
+                                // Do nothing
+                            };
+                        });
+                    }
+
+                });
+
+                res.status(200).send({ publicationUpdated });
+            } else {
+                return removeFileUploaded(res, file_path.toString(), 'Image extension not valid.');
+            }
+
+        } else {
+            return res.status(400).send({
+                message: 'Image is required.'
+            });
+        }
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+
+};
+
+var removeFileUploaded = (res, file_path, message) => {
+    fs.unlink(file_path, (error) => {
+        return res.status(400).send({
+            message
+        });
+    });
+};
+
+//GET /publication/image/:imageFile (authenticated)
+var getImagePublication = (req, res) => {
+    const imagePublication = req.params.imageFile;
+    const imagePath = `./uploads/publications/${imagePublication}`;
+
+    fs.exists(imagePath, (exists) => {
+        if (exists) {
+            res.sendFile(path.resolve(imagePath));
+        } else {
+            return res.status(404).send({
+                message: 'Unable to find image.'
+            });
+        }
+    });
+};
+
 module.exports = {
     savePublication,
     getPublications,
     getPublication,
-    deletePublication
+    deletePublication,
+    uploadImage,
+    getImagePublication
 };

@@ -6,6 +6,7 @@ const path = require('path');
 var { ObjectID } = require('mongodb');
 var { User } = require('../models/user');
 var { Follow } = require('../models/follow');
+var { Publication } = require('../models/publication');
 
 // POST /register
 var saveUser = async(req, res) => {
@@ -136,9 +137,14 @@ var getCounters = async(req, res) => {
             _followed: userId
         }).select({ '__v': 0, '_followed': 0, '_id': 0 });
 
+        const countPublications = await Publication.countDocuments({
+            _user: userId
+        }).select({ '__v': 0, '_followed': 0, '_id': 0 });
+
         res.status(200).send({
             countFollowing,
-            countFollowedMe
+            countFollowedMe,
+            countPublications
         });
 
     } catch (error) {
@@ -180,21 +186,23 @@ var uploadImage = async(req, res) => {
         gif: 'gif'
     };
 
-    if (req.files) {
+    try {
 
-        const file_path = req.files.image.path;
-        const file_params = file_path.split('\\');
-        const file_name = file_params[2];
-        const file_name_split = file_name.split('\.');
-        const file_extension = file_name_split[1];
+        if (req.files) {
 
-        if (!ObjectID.isValid(id) || id != req.user._id) {
-            return removeFileUploaded(res, file_path, 'User Id not valid.');
-        }
+            const file_path = req.files.image.path;
+            const file_params = file_path.split('\\');
+            const file_name = file_params[2];
+            const file_name_split = file_name.split('\.');
+            const file_extension = file_name_split[1];
 
-        if (validator.isIn(file_extension, allowed_extensions)) {
+            if (!ObjectID.isValid(id) || id != req.user._id) {
+                return removeFileUploaded(res, file_path, 'User Id not valid.');
+            }
 
-            try {
+            if (validator.isIn(file_extension, allowed_extensions)) {
+
+
                 const prevUser = await User.findById(id);
                 const prevImagePath = `./uploads/users/${prevUser.image}`;
 
@@ -215,19 +223,20 @@ var uploadImage = async(req, res) => {
                 });
 
                 res.status(200).send({ userUpdated });
-            } catch (error) {
-                res.status(404).send({
-                    message: 'Unable to update user image.'
-                });
+
+
+            } else {
+                return removeFileUploaded(res, file_path.toString(), 'Image extension not valid.');
             }
 
         } else {
-            return removeFileUploaded(res, file_path.toString(), 'Image extension not valid.');
+            return res.status(400).send({
+                message: 'Image is required.'
+            });
         }
-
-    } else {
-        return res.status(400).send({
-            message: 'Image is required.'
+    } catch (error) {
+        res.status(404).send({
+            message: 'Unable to update user image.'
         });
     }
 
@@ -241,6 +250,7 @@ var removeFileUploaded = (res, file_path, message) => {
     });
 };
 
+//GET /user/image/:imageFile (authenticated)
 var getImageUser = (req, res) => {
     const imageUser = req.params.imageFile;
     const imagePath = `./uploads/users/${imageUser}`;
