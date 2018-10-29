@@ -36,6 +36,7 @@ var loginUser = async(req, res) => {
         user = user.toObject();
         delete user.password;
         delete user.tokens;
+        delete user.__v;
 
         res.header('x-auth', token).status(200).send(user);
     } catch (error) {
@@ -60,26 +61,27 @@ var getMe = (req, res) => {
 
 // GET /user/:id (authenticated)
 var getUser = async(req, res) => {
-    const userId = req.params.id;
-
-    if (!ObjectID.isValid(userId)) {
-        throw new Error('Id not valid.');
-    }
-
     try {
-        var user = await User.findById(userId);
-        const follow = await Follow.find({
-            _user: req.user._id,
-            _followed: userId
-        });
+        const userId = req.params.id;
 
-        user = user.toObject();
-        delete user.password;
-        delete user.tokens;
+        if (!ObjectID.isValid(userId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var user = await User.findById(userId).select({ '__v': 0, 'password': 0, 'tokens': 0 });
+
+        const following = await Follow.find({
+            _user: req.user._id
+        }).select({ '__v': 0, '_user': 0, '_id': 0 });
+
+        const followedMe = await Follow.find({
+            _followed: req.user._id
+        }).select({ '__v': 0, '_followed': 0, '_id': 0 });
 
         res.status(200).send({
             user,
-            follow
+            following,
+            followedMe
         });
     } catch (error) {
         res.status(404).send({ message: error.message });
@@ -89,23 +91,28 @@ var getUser = async(req, res) => {
 // GET /users/page? (authenticated)
 
 var getUsers = async(req, res) => {
-    const userId = req.user._id;
-    var page = req.params.page || 1
-    var itemsPerPage = 5;
-
     try {
+        var page = req.params.page || 1
+        var itemsPerPage = 1;
         var totalUsers = await User.find({}).exec();
 
         var usersFiltered = await User.find({})
+            .select({ '__v': 0, 'password': 0, 'tokens': 0 })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
 
-        usersFiltered = usersFiltered.toObject();
-        delete usersFiltered.password;
-        delete usersFiltered.tokens;
+        const following = await Follow.find({
+            _user: req.user._id
+        }).select({ '__v': 0, '_user': 0, '_id': 0 });
+
+        const followedMe = await Follow.find({
+            _followed: req.user._id
+        }).select({ '__v': 0, '_followed': 0, '_id': 0 });
 
         res.status(200).send({
             usersFiltered,
+            following,
+            followedMe,
             total: totalUsers.length,
             pages: Math.ceil(totalUsers.length / itemsPerPage),
             currentPage: page
@@ -116,24 +123,42 @@ var getUsers = async(req, res) => {
     }
 };
 
-// PUT /user/:id (authenticated)
+var getCounters = async(req, res) => {
+    try {
+        const userId = req.params.id || req.user._id;
 
-var updateUser = async(req, res) => {
-    const id = req.params.id;
-    const body = _.pick(req.body, ['name', 'surname', 'nick', 'email', 'image']);
+        const countFollowing = await Follow.countDocuments({
+            _user: userId
+        }).select({ '__v': 0, '_user': 0, '_id': 0 });
 
-    if (!ObjectID.isValid(id) || id != req.user._id) {
-        throw new Error('Id not valid.');
+        const countFollowedMe = await Follow.countDocuments({
+            _followed: userId
+        }).select({ '__v': 0, '_followed': 0, '_id': 0 });
+
+        res.status(200).send({
+            countFollowing,
+            countFollowedMe
+        });
+
+    } catch (error) {
+        res.status(404).send({ message: error.message });
     }
 
-    try {
-        var userUpdated = await User.findOneAndUpdate({
-            _id: id
-        }, { $set: body }, { new: true });
+};
 
-        userUpdated = userUpdated.toObject();
-        delete userUpdated.password;
-        delete userUpdated.tokens;
+// PUT /user/:id (authenticated)
+var updateUser = async(req, res) => {
+    try {
+        const id = req.params.id;
+        const body = _.pick(req.body, ['name', 'surname', 'nick', 'email', 'image']);
+
+        if (!ObjectID.isValid(id) || id != req.user._id) {
+            throw new Error('Id not valid.');
+        }
+        var userUpdated = await User.findOneAndUpdate({
+                _id: id
+            }, { $set: body }, { new: true })
+            .select({ '__v': 0, 'password': 0, 'tokens': 0 });
 
         res.status(200).send({ userUpdated });
     } catch (error) {
@@ -173,8 +198,9 @@ var uploadImage = async(req, res) => {
                 const prevImagePath = `./uploads/users/${prevUser.image}`;
 
                 var userUpdated = await User.findOneAndUpdate({
-                    _id: id
-                }, { $set: { image: file_name } }, { new: true });
+                        _id: id
+                    }, { $set: { image: file_name } }, { new: true })
+                    .select({ '__v': 0, 'password': 0, 'tokens': 0 });
 
                 fs.exists(prevImagePath, (exists) => {
                     if (exists) {
@@ -186,10 +212,6 @@ var uploadImage = async(req, res) => {
                     }
 
                 });
-
-                userUpdated = userUpdated.toObject();
-                delete userUpdated.password;
-                delete userUpdated.tokens;
 
                 res.status(200).send({ userUpdated });
             } catch (error) {
@@ -241,6 +263,7 @@ module.exports = {
     getMe,
     getUser,
     getUsers,
+    getCounters,
     updateUser,
     uploadImage,
     getImageUser

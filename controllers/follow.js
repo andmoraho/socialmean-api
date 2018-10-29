@@ -8,11 +8,10 @@ var { Follow } = require('../models/follow');
 
 // POST /follow (authenticated)
 var saveFollow = async(req, res) => {
-    const body = _.pick(req.body, ['_followed']);
-    const _user = req.user._id;
-    const _followed = body._followed;
-
     try {
+        const body = _.pick(req.body, ['_followed']);
+        const _user = req.user._id;
+        const _followed = body._followed;
         var isFollowed = await Follow.find({ _user, _followed });
 
         if (!ObjectID.isValid(_user) && !ObjectID.isValid(_followed)) {
@@ -46,11 +45,10 @@ var saveFollow = async(req, res) => {
 
 // DELETE /follow (authenticated)
 var deleteFollow = async(req, res) => {
-    const body = _.pick(req.body, ['_followed']);
-    const _user = req.user._id;
-    const _followed = body._followed;
-
     try {
+        const body = _.pick(req.body, ['_followed']);
+        const _user = req.user._id;
+        const _followed = body._followed;
         if (!ObjectID.isValid(_user) && !ObjectID.isValid(_followed)) {
             throw new Error('Id not valid.');
         }
@@ -70,11 +68,10 @@ var deleteFollow = async(req, res) => {
 
 // GET /following/:page? (authenticated)
 var getFollowingUser = async(req, res) => {
-    const userId = req.user._id;
-    var page = req.params.page || 1;
-    var itemsPerPage = 5;
-
     try {
+        const userId = req.user._id;
+        var page = req.params.page || 1;
+        var itemsPerPage = 5;
 
         if (!ObjectID.isValid(userId)) {
             throw new Error('Id not valid.');
@@ -89,7 +86,7 @@ var getFollowingUser = async(req, res) => {
             })
             .populate({
                 path: '_followed',
-                select: '-password -tokens'
+                select: '-password -tokens -__v'
             })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
@@ -110,11 +107,10 @@ var getFollowingUser = async(req, res) => {
 
 // GET /followed/:page? (authenticated)
 var getFollowedUser = async(req, res) => {
-    const userId = req.user._id;
-    var page = req.params.page || 1;
-    var itemsPerPage = 5;
-
     try {
+        const userId = req.user._id;
+        var page = req.params.page || 1;
+        var itemsPerPage = 5;
 
         if (!ObjectID.isValid(userId)) {
             throw new Error('Id not valid.');
@@ -129,7 +125,7 @@ var getFollowedUser = async(req, res) => {
             })
             .populate({
                 path: '_user _followed',
-                select: '-password -tokens'
+                select: '-password -tokens -__v'
             })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
@@ -150,17 +146,16 @@ var getFollowedUser = async(req, res) => {
 
 // GET /follows/:followed? (authenticated)
 var getMyFollows = async(req, res) => {
-    const userId = req.user._id;
-    var followsFiltered;
-
     try {
+        const userId = req.user._id;
+        var followsFiltered;
         if (req.params.followed) {
             followsFiltered = await Follow.find({
                     _followed: userId
                 })
                 .populate({
                     path: '_user _followed',
-                    select: '-password -tokens'
+                    select: '-password -tokens -__v'
                 });
         } else {
             followsFiltered = await Follow.find({
@@ -168,7 +163,7 @@ var getMyFollows = async(req, res) => {
                 })
                 .populate({
                     path: '_user _followed',
-                    select: '-password -tokens'
+                    select: '-password -tokens -__v'
                 });
         }
 
