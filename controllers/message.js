@@ -153,9 +153,33 @@ var getMessageUnViewed = async(req, res) => {
     }
 };
 
+var setMessageViewed = async(req, res) => {
+    try {
+        const userId = req.user._id;
+
+        if (!ObjectID.isValid(userId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var messagesViewed = await Message.updateMany({
+            _receiver: userId
+        }, { viewed: 'true' });
+
+        res.status(200).send({
+            messagesViewed
+        });
+
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     saveMessage,
     getMessageReceived,
     getMessageSent,
-    getMessageUnViewed
+    getMessageUnViewed,
+    setMessageViewed
 };
