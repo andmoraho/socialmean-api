@@ -60,7 +60,7 @@ var getPublications = async(req, res) => {
             followsClean.push(follow._followed);
         });
 
-        var totalFollowing = await Follow.find({
+        var totalFollowing = await Follow.countDocuments({
             _user: { "$in": followsClean }
         });
 
@@ -78,8 +78,8 @@ var getPublications = async(req, res) => {
 
         res.status(200).send({
             publicationsPaginated,
-            total: totalFollowing.length,
-            pages: Math.ceil(totalFollowing.length / itemsPerPage),
+            total: totalFollowing,
+            pages: Math.ceil(totalFollowing / itemsPerPage),
             currentPage: page
         });
 

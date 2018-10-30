@@ -15,6 +15,9 @@ var MessageSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    viewed: {
+        type: String
+    },
     createdAt: {
         type: Number,
         default: null

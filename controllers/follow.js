@@ -77,7 +77,7 @@ var getFollowingUser = async(req, res) => {
             throw new Error('Id not valid.');
         }
 
-        var totalFollowing = await Follow.find({
+        var totalFollowing = await Follow.countDocuments({
             _user: userId
         });
 
@@ -93,8 +93,8 @@ var getFollowingUser = async(req, res) => {
 
         res.status(200).send({
             followsFiltered,
-            total: totalFollowing.length,
-            pages: Math.ceil(totalFollowing.length / itemsPerPage),
+            total: totalFollowing,
+            pages: Math.ceil(totalFollowing / itemsPerPage),
             currentPage: page
         });
 
@@ -116,7 +116,7 @@ var getFollowedUser = async(req, res) => {
             throw new Error('Id not valid.');
         }
 
-        var totalFollowed = await Follow.find({
+        var totalFollowed = await Follow.countDocuments({
             _followed: userId
         });
 
@@ -132,8 +132,8 @@ var getFollowedUser = async(req, res) => {
 
         res.status(200).send({
             followsFiltered,
-            total: totalFollowed.length,
-            pages: Math.ceil(totalFollowed.length / itemsPerPage),
+            total: totalFollowed,
+            pages: Math.ceil(totalFollowed / itemsPerPage),
             currentPage: page
         });
 

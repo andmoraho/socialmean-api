@@ -95,7 +95,7 @@ var getUsers = async(req, res) => {
     try {
         var page = req.params.page || 1
         var itemsPerPage = 1;
-        var totalUsers = await User.find({}).exec();
+        var totalUsers = await User.countDocuments({});
 
         var usersFiltered = await User.find({})
             .select({ '__v': 0, 'password': 0, 'tokens': 0 })
@@ -114,8 +114,8 @@ var getUsers = async(req, res) => {
             usersFiltered,
             following,
             followedMe,
-            total: totalUsers.length,
-            pages: Math.ceil(totalUsers.length / itemsPerPage),
+            total: totalUsers,
+            pages: Math.ceil(totalUsers / itemsPerPage),
             currentPage: page
         });
 
