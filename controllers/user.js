@@ -98,7 +98,7 @@ var getUsers = async(req, res) => {
         var totalUsers = await User.countDocuments({});
 
         var usersFiltered = await User.find({})
-            .select({ '__v': 0, 'password': 0, 'tokens': 0 })
+            .select({ '__v': 0, 'role': 0, 'password': 0, 'tokens': 0 })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
 
@@ -209,7 +209,7 @@ var uploadImage = async(req, res) => {
                 var userUpdated = await User.findOneAndUpdate({
                         _id: id
                     }, { $set: { image: file_name } }, { new: true })
-                    .select({ '__v': 0, 'password': 0, 'tokens': 0 });
+                    .select({ '__v': 0, 'role': 0, 'password': 0, 'tokens': 0 });
 
                 fs.exists(prevImagePath, (exists) => {
                     if (exists) {

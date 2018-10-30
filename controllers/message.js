@@ -30,6 +30,7 @@ var saveMessage = async(req, res) => {
         message._emitter = _emitter;
         message._receiver = body._receiver;
         message.createdAt = moment().valueOf();
+        message.viewed = 'false';
 
         var messageStored = await message.save();
         // messageStored = messageStored.toObject();
@@ -46,8 +47,8 @@ var saveMessage = async(req, res) => {
     }
 };
 
-// GET /messages/:page? (authenticated)
-var getMessage = async(req, res) => {
+// GET /messages/received/:page? (authenticated)
+var getMessageReceived = async(req, res) => {
     try {
         const userId = req.user._id;
         var page = req.params.page || 1;
@@ -66,7 +67,7 @@ var getMessage = async(req, res) => {
             })
             .populate({
                 path: '_emitter',
-                select: '-password -tokens -__v'
+                select: '-role -password -tokens -__v'
             })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
@@ -86,7 +87,75 @@ var getMessage = async(req, res) => {
     }
 };
 
+// GET /messages/sent/:page? (authenticated)
+var getMessageSent = async(req, res) => {
+    try {
+        const userId = req.user._id;
+        var page = req.params.page || 1;
+        var itemsPerPage = 5;
+
+        if (!ObjectID.isValid(userId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var totalMessages = await Message.countDocuments({
+            _emitter: userId
+        });
+
+        var messagesFiltered = await Message.find({
+                _emitter: userId
+            })
+            .populate({
+                path: '_receiver',
+                select: '-role -password -tokens -__v'
+            })
+            .skip((itemsPerPage * page) - itemsPerPage)
+            .limit(itemsPerPage);
+
+        res.status(200).send({
+            messagesFiltered,
+            total: totalMessages,
+            pages: Math.ceil(totalMessages / itemsPerPage),
+            currentPage: page
+        });
+
+
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
+// GET /messages/unviewed (authenticated)
+var getMessageUnViewed = async(req, res) => {
+    try {
+        const userId = req.user._id;
+
+        if (!ObjectID.isValid(userId)) {
+            throw new Error('Id not valid.');
+        }
+
+        var messagesUnViewed = await Message.countDocuments({
+            _receiver: userId,
+            viewed: 'false'
+        });
+
+        res.status(200).send({
+            messagesUnViewed
+        });
+
+
+    } catch (error) {
+        res.status(400).send({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     saveMessage,
-    getMessage
+    getMessageReceived,
+    getMessageSent,
+    getMessageUnViewed
 };

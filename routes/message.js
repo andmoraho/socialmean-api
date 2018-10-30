@@ -6,6 +6,8 @@ const { authenticate } = require('../middleware/authenticate');
 var api = express.Router();
 
 api.post('/message', authenticate, MessageController.saveMessage);
-api.get('/messages/:page?', authenticate, MessageController.getMessage);
+api.get('/messages/received/:page?', authenticate, MessageController.getMessageReceived);
+api.get('/messages/sent/:page?', authenticate, MessageController.getMessageSent);
+api.get('/messages/unviewed', authenticate, MessageController.getMessageUnViewed);
 
 module.exports = api;

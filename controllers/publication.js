@@ -53,7 +53,7 @@ var getPublications = async(req, res) => {
             })
             .populate({
                 path: '_followed',
-                select: '-password -tokens -__v'
+                select: '-role -password -tokens -__v'
             });
 
         followsFiltered.forEach((follow) => {
@@ -70,7 +70,7 @@ var getPublications = async(req, res) => {
             .sort('-createdAt')
             .populate({
                 path: '_user',
-                select: '-password -tokens -__v'
+                select: '-role -password -tokens -__v'
             })
             .select({ '__v': 0 })
             .skip((itemsPerPage * page) - itemsPerPage)

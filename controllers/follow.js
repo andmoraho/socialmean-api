@@ -86,7 +86,7 @@ var getFollowingUser = async(req, res) => {
             })
             .populate({
                 path: '_followed',
-                select: '-password -tokens -__v'
+                select: '-role -password -tokens -__v'
             })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
@@ -125,7 +125,7 @@ var getFollowedUser = async(req, res) => {
             })
             .populate({
                 path: '_user _followed',
-                select: '-password -tokens -__v'
+                select: '-role -password -tokens -__v'
             })
             .skip((itemsPerPage * page) - itemsPerPage)
             .limit(itemsPerPage);
@@ -155,7 +155,7 @@ var getMyFollows = async(req, res) => {
                 })
                 .populate({
                     path: '_user _followed',
-                    select: '-password -tokens -__v'
+                    select: '-role -password -tokens -__v'
                 });
         } else {
             followsFiltered = await Follow.find({
@@ -163,7 +163,7 @@ var getMyFollows = async(req, res) => {
                 })
                 .populate({
                     path: '_user _followed',
-                    select: '-password -tokens -__v'
+                    select: '-role -password -tokens -__v'
                 });
         }
 
