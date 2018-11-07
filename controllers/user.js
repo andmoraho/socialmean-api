@@ -12,7 +12,7 @@ var { Publication } = require('../models/publication');
 var saveUser = async(req, res) => {
     try {
         const body = _.pick(req.body, ['name', 'surname', 'nick', 'email', 'password', 'role', 'image']);
-        const user = new User(body);
+        var user = new User(body);
 
         await user.save();
         user = user.toObject();
