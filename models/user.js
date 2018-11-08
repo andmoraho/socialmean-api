@@ -113,7 +113,7 @@ UserSchema.statics.findByToken = function(token) {
 
 };
 
-UserSchema.statics.findByCredentials = function(email, password) {
+UserSchema.statics.findByCredentials = async function(email, password) {
     var user = this;
 
     return user.findOne({ email }).then((userFind) => {
@@ -128,9 +128,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
                 if (result) {
                     resolve(userFind);
                 } else {
-                    reject().then(function() {
-                        throw new Error();
-                    });
+                    reject(new Error(error));
                 }
             });
         });

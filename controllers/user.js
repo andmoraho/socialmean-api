@@ -55,7 +55,7 @@ var logoutUser = async(req, res) => {
     }
 };
 
-// GET /me (authentocated)
+// GET /me (authenticated)
 var getMe = (req, res) => {
     res.status(200).send(req.user);
 };
