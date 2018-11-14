@@ -1,5 +1,5 @@
 {
-    "name": "social-mean-api",
+    "name": "socialmean-api",
     "version": "1.0.0",
     "description": "Backend with Node.js",
     "main": "index.js",

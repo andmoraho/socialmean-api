@@ -45,17 +45,25 @@ var loginUser = async(req, res) => {
     }
 };
 
-// DELETE /logout (authentocated)
+// DELETE / logout(authenticated)
 var logoutUser = async(req, res) => {
     try {
-        await req.user.removeToken(req.token);
+
+        var userLogout = await User.findOneAndUpdate({
+            _id: req.user._id
+        }, { $set: { tokens: [] } }, { new: false });
+
         res.status(200).send();
+
     } catch (error) {
-        res.status(400).send();
+        res.status(400).send({
+            message: error.message
+        });
     }
 };
 
-// GET /me (authenticated)
+
+// GET /user/me (authenticated)
 var getMe = (req, res) => {
     res.status(200).send(req.user);
 };
