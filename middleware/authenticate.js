@@ -5,7 +5,7 @@ const { User } = require('../models/user');
 var authenticate = (req, res, next) => {
     try {
         var token = req.header('x-auth');
-        var decoded = jwt.verify(token, process.env.JWT_SECRET, { maxAge: '60m' });
+        var decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         User.findOne({
             '_id': decoded._id
