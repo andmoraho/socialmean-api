@@ -177,15 +177,13 @@ var getCounters = async (req, res) => {
 var updateUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const body = _.pick(req.user, [
+    const body = _.pick(JSON.parse(Object.keys(req.body)[0]), [
       'name',
       'surname',
       'nick',
       'email',
       'image'
     ]);
-
-    console.log(body);
 
     if (!ObjectID.isValid(id) || id != req.user._id) {
       throw new Error('Id not valid.');
