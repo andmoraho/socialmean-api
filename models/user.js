@@ -21,6 +21,7 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+    unique: true,
     minlength: [2, 'Nick is shorter than the minimum allowed length']
   },
   email: {
